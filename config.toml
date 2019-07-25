@@ -1,0 +1,24 @@
+baseURL = "https://rogchap.com/"
+languageCode = "en-au"
+title = "Roger Chapman"
+theme = "temple"
+
+pygmentsStyle = "friendly"
+pygmentsCodeFences = true
+
+enableRobotsTXT=true
+
+disqusShortname = "rogchap"
+googleAnalytics = "UA-4155555-8"
+
+[permalinks]
+posts = "/:year/:month/:day/:slug/"
+
+[params]
+dateformatpretty = "Jan 2, 2006"
+
+[author]
+email = "rogchap@gmail.com"
+github = "rogchap"
+twitter = "rogchap"
+medium = "rogchap"
