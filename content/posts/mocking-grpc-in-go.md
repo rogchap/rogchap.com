@@ -7,11 +7,11 @@ tags:
 - gRPC
 ---
 
-One of the huge benifits of using gRPC is the ability to autogenerate our client and server stubs from the protocol buffer definitions.
+One of the huge benefits of using gRPC is the ability to autogenerate our client and server stubs from the protocol buffer definitions.
 
 In the same way, we can we generate our own code by building a plugin for the protocol buffer compiler (protoc).
 
-The plugin we're creating is going to autogenerate gRPC response messages so that we can build a mock gRPC server. 
+The plugin we're creating is going to auto-generate gRPC response messages so that we can build a mock gRPC server. 
 
 ## Goal
 Given the following `proto` file:
