@@ -30,7 +30,8 @@
             {{ end }}
 
             {{ with $page.Params.tags }}
-            tags: [ {{ range $page.Params.tags}}<a href="{{ $baseurl }}tags/{{ . | urlize }}">{{ . }}</a> {{ end }}]
+            tags: [ {{ range $i, $t := $page.Params.tags }}{{ if $i }}, {{ end }}<a
+              href="{{ $baseurl }}tags/{{ $t | urlize }}">{{ $t }}</a>{{ end }} ]
             {{ end }}
 
             {{ with $page.Params.categories }}

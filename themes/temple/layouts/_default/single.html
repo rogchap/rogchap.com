@@ -22,7 +22,8 @@
           |
           {{ end }}
           {{ if isset .Params "tags" }}
-          tags: [ {{ range .Params.tags }}<a href="{{ $baseurl }}tags/{{ . | urlize }}">{{ . }}</a> {{ end }}]
+          tags: [ {{ range $i, $t := .Params.tags }}{{ if $i }}, {{ end }}<a
+            href="{{ $baseurl }}tags/{{ $t | urlize }}">{{ $t }}</a>{{ end }} ]
           {{ end }}
 
           {{ if isset .Params "categories" }}

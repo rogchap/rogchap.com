@@ -1,7 +1,10 @@
 ---
 title: "Mocking gRPC in Go"
-date: 2019-07-25T22:20:10+10:00
+date: 2019-06-25T22:20:10+10:00
 type: post
+tags:
+- Go
+- gRPC
 ---
 
 One of the huge benifits of using gRPC is the ability to autogenerate our client and server stubs from the protocol buffer definitions.

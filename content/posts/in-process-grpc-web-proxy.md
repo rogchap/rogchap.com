@@ -2,6 +2,9 @@
 title: "In Process gRPC-Web Proxy"
 date: 2019-07-26T17:11:06+10:00
 type: post
+tags:
+- Go
+- gRPC
 ---
 
 From the offical [gRPC-Web](https://github.com/grpc/grpc-web) docs:
