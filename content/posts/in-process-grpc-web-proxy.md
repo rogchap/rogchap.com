@@ -42,5 +42,5 @@ For our frontend engineers they rely on chrome devtools to view newtwork traffic
 
 So we created [gRPC-Web Dev Tools](https://github.com/SafetyCulture/grpc-web-devtools) a network like extension for Chrome that alows you to view the gRPC-Web requests and responses de-serialized to JSON objects; much better:
 
-![gRPC-Web Dev Tools](/post/img/grpc-web-devtools.png)
+![gRPC-Web Dev Tools](/posts/img/grpc-web-devtools.png)
 
