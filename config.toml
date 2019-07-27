@@ -11,6 +11,9 @@ enableRobotsTXT=true
 disqusShortname = "rogchap"
 googleAnalytics = "UA-4155555-8"
 
+[taxonomies]
+tag = "tags"
+
 [permalinks]
 posts = "/:year/:month/:day/:slug/"
 
