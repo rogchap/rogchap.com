@@ -15,7 +15,7 @@ For production we can just enable the `envoy.grpc_web` filter and we are good to
 
 But for development I wanted to create a gRPC server that engineers could install via a single binary and not have to run anything extra (like envoy running in docker).
 ## gRPC-Web Wrapper
-Prior to the release of the official gRPC-Web implementation the good guys at Improbable Engineering had created there own version of gRPC-Web and also have a [`grpcweb`](https://github.com/improbable-eng/grpc-web/tree/master/go/grpcweb) package that implements the gRPC-Web spec as a wrapper around a gRPC-Go Server.
+Prior to the release of the official gRPC-Web implementation the good guys at Improbable Engineering had created there own version of gRPC-Web and also have a [`grpcweb`](https://github.com/improbable-eng/grpc-web/tree/master/go/grpcweb) package that implements the gRPC-Web spec as a wrapper around a gRPC Go (Golang) Server.
 
 Turns out that, with a little extra configuration, it can be made compatible with the official gRPC-Web client:
 ```go

@@ -1,13 +1,12 @@
 ---
 title: "Building an Assembler"
-date: 2019-07-27T15:04:23+10:00
+date: 2019-07-28T13:04:23+10:00
 type: post
 tags:
 - Go
-draft: true
 ---
 
-I recently completed the first part of the awesome "[From Nand to Tetris](https://www.nand2tetris.org)" course. For project 6 you have to build an Assembler for the HACK Computer using a high level language of your choice; naturally I did my project using Go. 
+I recently completed the first part of the awesome "[From Nand to Tetris](https://www.nand2tetris.org)" course. For project 6 you build an Assembler for the HACK Computer using a high level language of your choice; naturally I did my project using Go (Golang). 
 
 The HACK Assembly language is very simple, and an Assembler could be written using string manipulation in less than 50 lines of code. However, I've always wanted to build a lexer/scanner and parser in Go and thought this would be a great little project to do so. 
 ```c
@@ -90,7 +89,7 @@ func (s *Scanner) next() {
 	}
 }
 ```
-The scanners job is to read one `rune` at a time and return a `Token` and the `string` literal of what it "scanned".
+The scanners job is to read one `rune` at a time and return a `Token` and the `string` literal of what it scanned.
 
 For the Hack Assembly Language whitespace means nothing, so we can safely skip any found (the indentation in the example is only for readability):
 ```go
@@ -199,4 +198,110 @@ func (s *Scanner) Scan() (tok Token, lit string) {
 	return
 }
 ```
-## Parsing what we know
+## Syntax Tree
+Before we start parsing the HACK Assembly file we want to define our abstract syntax tree (AST). All Labels get converted to Symbols (more on this later) so we're left with a simple list of either "A", or "C" instructions:
+```go
+type Instruction interface {
+	BinaryString() string
+}
+
+type HackFile struct {
+	Instructions []Instruction
+}
+
+type AInstruction struct {
+	lit string // the raw assembly instruction pre-parsing
+	addr int
+}
+
+func (a *AInstruction) BinaryString() string {
+	return fmt.Sprintf("0%015b\n", a.addr)
+}
+
+type CInstruction struct {
+	lit string
+	dest int // C instructions look like: `dest=comp;jump`; dest and jump are optional
+	comp int
+	jump int
+}
+
+func (c *CInstruction) BinaryString() string {
+	return fmt.Sprintf("111%07b%03b%03b\n", c.comp, c.dest, c.jump)
+}
+```
+Each `Instruction` interface has a single method `BinaryString()` which will make it really easy for us to output the machine code later.
+
+With out AST defined and our complete Scanner, we are ready to start parsing the data.
+
+## Parsing
+The HACK Assembly Language has a number of pre-defined memory allocations defined as Symbols, so we'll initiate our parser with this in mind. Later, Labels we parse will be added to these Symbols and any variables found should also be added to these Symbols for later lookup.
+```go
+type Parser struct {
+	scanner Scanner
+	symbols map[string]int
+	instructions []Instruction
+	nAddr int // next available address
+}
+
+func (p *Parser) Init(src []byte) {
+	p.scanner.Init(src)	
+	p.nAddr = 16 // address [0:15] are reserved
+	p.symbols = map[string]int{
+		"R0": 0, "R1": 1, "R2": 2, "R3": 3, "R4": 4, "R5": 5, "R6": 6, "R7": 7, "R8": 8,
+		"R9": 9, "R10": 10, "R11": 11, "R12": 12, "R13": 13, "R14": 14, "R15": 15,
+		"SCREEN": 16384, "KBD": 24576,
+		"SP": 0, "LCL": 1, "ARG": 2, "THIS": 3, "THAT": 4,
+	}
+}
+```
+Because Labels could appear in an "A" instruction before they are defined, we will need to parse the file in two passes; but instead of re-setting the scanner, we will parse the instructions by storing the raw string literal and parse the instructions in a second pass:
+```go
+func (p *Parser) Parse() HackFile {
+loop:
+	for {
+		tok, lit := p.scanner.Scan()
+		switch tok {
+		case EOF:
+			break loop // break out of the loop not just the switch
+		case LABEL:
+			p.symbols[lit] = len(p.instructions)
+		case A_INSTRUCTION:
+			p.instructions = append(p.instructions, &AInstruction{lit: lit})
+		case C_INSTRUCTION:
+			p.instructions = append(p.instructions, &CInstruction{lit: lit})
+		}
+	}
+
+	for _, instr := range p.instructions {
+		switch i := instr.(type) {
+		case *AInstruction:
+			p.parseAInstruction(i)
+		case *CInstruction:
+			p.parseCInstruction(i)
+		}
+	} 
+	return HackFile{ Instructions: p.instructions }
+}
+```
+I'm intentionally not giving you the `parseAInstruction()` and `parseCInstruction()` methods, just so you can do some of the work yourself :smile:
+## Tying it all together
+Our CLI tool will read in the `*.asm` file and output the machine code as a `*.hack` file:
+```go
+func main() {
+	asmFilePath := os.Args[1]
+	asmData, _ := ioutil.ReadFile(asmFilePath) // ignoring errors for brevity
+	
+	var p Parser
+	p.Init(asmData)
+	hackFile := p.Parse()
+
+	var b bytes.Buffer
+	for _, i := range hackFile.Instructions {
+		b.WriteString(i.BinaryString())
+	}
+
+	hackFilePath := strings.Replace(asmFilePath, ".asm", ".hack", 1)
+	ioutil.WriteFile(hackFilePath, b.Bytes(), 0644)
+}
+```
+This project was the pre-cursor to writing a lexer/parser for the [Djinni IDL in Go](https://github.com/SafetyCulture/djinni-parser), which builds on top of these concepts; Check it out of you want more detail on building a lexer/parser in Go.

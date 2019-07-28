@@ -7,6 +7,7 @@ pygmentsStyle = "friendly"
 pygmentsCodeFences = true
 
 enableRobotsTXT=true
+enableEmoji=true
 
 disqusShortname = "rogchap"
 googleAnalytics = "UA-4155555-8"

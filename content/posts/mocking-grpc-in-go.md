@@ -11,7 +11,7 @@ One of the huge benefits of using gRPC is the ability to autogenerate our client
 
 In the same way, we can we generate our own code by building a plugin for the protocol buffer compiler (protoc).
 
-The plugin we're creating is going to auto-generate gRPC response messages so that we can build a mock gRPC server. 
+The plugin we're creating is going to auto-generate gRPC response messages so that we can build a mock gRPC server in Go (Golang). 
 
 ## Goal
 Given the following `proto` file:
