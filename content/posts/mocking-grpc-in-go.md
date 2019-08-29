@@ -96,12 +96,12 @@ func (g *grpcmock) generateMockMessage(msg *generator.Descriptor) {
     msgName := g.TypeName(msg)
     g.P(msgName, `{`)
     g.In()
-        for _, field := range msg.Field {
-            fieldName := g.GetFieldName(msg, field)
-            if field.IsString() {
-                g.P(fieldName, `: "f267332d-0d9a-4220-b055-63b661b600db",`) 
-            }
-        }
+	for _, field := range msg.Field {
+		fieldName := g.GetFieldName(msg, field)
+		if field.IsString() {
+			g.P(fieldName, `: "f267332d-0d9a-4220-b055-63b661b600db",`) 
+		}
+	}
     g.Out()
     g.P(`}`)
 }

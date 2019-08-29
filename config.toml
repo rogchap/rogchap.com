@@ -17,6 +17,7 @@ tag = "tags"
 
 [permalinks]
 posts = "/:year/:month/:day/:slug/"
+modules = "/:filename/"
 
 [params]
 dateformatpretty = "Jan 2, 2006"
