@@ -29,3 +29,6 @@ email = "rogchap@gmail.com"
 github = "rogchap"
 twitter = "rogchap"
 medium = "rogchap"
+
+[markup.goldmark.renderer]
+unsafe = true
