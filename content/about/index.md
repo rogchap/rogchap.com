@@ -10,6 +10,8 @@ Roger is currently Principal Enginner (Architecture) at [SafetyCulture](https://
 
 ## Code
 
+- [dotfiles](https://github.com/rogchap/dotfiles) - All my dotfiles (configuration) for my development tools (OSX,
+  iTerm2, tmux, vim etc)
 - [v8go](https://rogchap.com/v8go) - A Go module package to execute JavaScript
 - [grpc-web-devtools](https://github.com/SafetyCulture/grpc-web-devtools) - Chrome browser extension to aid gRPC-Web development; view gRPC messages de-serialized into JSON just like the standard Network devtool.
 - [protoc-gen-gogrpcmock](https://github.com/SafetyCulture/s12-proto/tree/master/protobuf/protoc-gen-gogrpcmock) - protoc plugin to generate a Go server that mocks the message responses for gRPC.
