@@ -1,19 +1,20 @@
 ---
 title: "Running Go Code on iOS and Android"
-date: 2020-08-30T14:51:26+10:00
+date: 2020-09-14T14:51:26+10:00
 type: post
 tags:
 - Go
 - Mobile
-draft: true
+- iOS
+- Android
 ---
 
 In this tutorial we'll be building a simple Go package that you can run from an iOS application (Swift) and also an
 Android application (Kotlin).
 
 This tutorial does **NOT** use the [Go Mobile](https://github.com/golang/mobile)
-framework; instead it uses Cgo to build a static (iOS) and shared (Android) C library that can be imported into your
-mobile project.
+framework; instead it uses Cgo to build the raw static (iOS) and shared (Android) C library that can be imported into your
+mobile project (which is what the Go Mobile framework does under-the-hood).
 
 ## Setup
 
@@ -33,15 +34,15 @@ For this tutorial we'll create a simple monorepo with the following structure:
 └── ios/
 ```
 
-```
-mkdir -p android ios go/cmd/libfoo go/foo
+```zsh
+$ mkdir -p android ios go/cmd/libfoo go/foo
 ```
 
 We'll start with the Go code and come back to creating the iOS and Android projects later.
 
-```
-cd go
-go mod init rogchap.com/libfoo
+```zsh
+$ cd go
+$ go mod init rogchap.com/libfoo
 ```
 
 ## Foo package
@@ -124,6 +125,8 @@ The Go standard library includes a script for building for iOS:
 ```sh
 #!/bin/sh
 
+# go/clangwrap.sh
+
 SDK_PATH=`xcrun --sdk $SDK --show-sdk-path`
 CLANG=`xcrun --sdk $SDK --find clang`
 
@@ -173,6 +176,8 @@ Using XCode we can create a simple single page application. I'm going to use Swi
 UIKit:
 
 ```swift
+// ios/foobar/ContentView.swift
+
 struct ContentView: View {
 
     @State private var txt: String = ""
@@ -195,20 +200,22 @@ In XCode we can drag-and-drop our newly generated `foo.a` and `foo.h` into our p
 interop with our library we need to create a bridging header:
 
 ```c
-// foobar-Bridging-Header.h
+// ios/foobar/foobar-Bridging-Header.h
 
 #import "foo.h"
 ```
 
-In Xcode `Build Settings`, under `Swift Compiler -General` set the `Objective-C Bridging Header` to the file we just
+In Xcode `Build Settings`, under `Swift Compiler - General` set the `Objective-C Bridging Header` to the file we just
 created: `foobar/foobar-Bridging-Header.h`.
 
 We also need to set the `Library Search Paths` to include the directory of our generated header file `foo.h`.
 (Xcode may have done this for you when you drag-and-drop the files into the project).
 
-We can now call our function from Swift:
+We can now call our function from Swift, then build and run:
 
 ```swift
+// ios/foobar/ContentView.swift
+
 Button("Reverse"){
     let str = reverse(UnsafeMutablePointer<Int8>(mutating: (self.txt as NSString).utf8String))
     self.txt = String.init(cString: str!, encoding: .utf8)!
@@ -216,6 +223,8 @@ Button("Reverse"){
     str?.deallocate()
 }
 ```
+
+![libfoo ios app](/posts/img/libfoo_ios.gif)
 
 # Creating the Android application
 
@@ -226,7 +235,7 @@ create a project with an Empty Activity that is configured to use the Java Nativ
 After creating a simple Activity with a `EditText` and `Button` we create the basic functionality for our app:
 
 ```kotlin
-// MainActivity.kt
+// android/app/src/main/java/com/rogchap/foobar/MainActivity.kt
 
 class MainActivity : AppCompatActivity() {
 
@@ -257,7 +266,7 @@ class MainActivity : AppCompatActivity() {
 We created (and called) and external function `reverse` that we need to implement in the JNI (C++):
 
 ```cpp
-// native-lib.cpp
+// android/app/src/main/cpp/native-lib.cpp
 
 extern "C" {
     jstring
@@ -273,13 +282,102 @@ The JNI code has to follow the conventions to interop correctly between the Nati
 ## Build for Android
 
 The way the JNI works with external libraries has changed over the many releases of Android and the NDK. The current
-(and easiest) is to place out outputed library into a special `jniLibs` folder that is copied into our final APK file.
+(and easiest) is to place our outputted library into a special `jniLibs` folder that is copied into our final APK file.
 
-Rather than creating a Fat binary (as we did for iOS) we are going to place each archatecture in the correct folder.
-Again, for the JNI conventions matter.
+Rather than creating a Fat binary (as we did for iOS) we are going to place each architecture in the correct folder.
+Again, for the JNI, conventions matter.
 
+```make
+// go/Makefile
+
+ANDROID_OUT=../android/app/src/main/jniLibs
+ANDROID_SDK=$(HOME)/Library/Android/sdk
+NDK_BIN=$(ANDROID_SDK)/ndk/21.0.6113669/toolchains/llvm/prebuilt/darwin-x86_64/bin
+
+android-armv7a:
+	CGO_ENABLED=1 \
+	GOOS=android \
+	GOARCH=arm \
+	GOARM=7 \
+	CC=$(NDK_BIN)/armv7a-linux-androideabi21-clang \
+	go build -buildmode=c-shared -o $(ANDROID_OUT)/armeabi-v7a/libfoo.so ./cmd/libfoo
+
+android-arm64:
+	CGO_ENABLED=1 \
+	GOOS=android \
+	GOARCH=arm64 \
+	CC=$(NDK_BIN)/aarch64-linux-android21-clang \
+	go build -buildmode=c-shared -o $(ANDROID_OUT)/arm64-v8a/libfoo.so ./cmd/libfoo
+
+android-x86:
+	CGO_ENABLED=1 \
+	GOOS=android \
+	GOARCH=386 \
+	CC=$(NDK_BIN)/i686-linux-android21-clang \
+	go build -buildmode=c-shared -o $(ANDROID_OUT)/x86/libfoo.so ./cmd/libfoo
+
+android-x86_64:
+	CGO_ENABLED=1 \
+	GOOS=android \
+	GOARCH=amd64 \
+	CC=$(NDK_BIN)/x86_64-linux-android21-clang \
+	go build -buildmode=c-shared -o $(ANDROID_OUT)/x86_64/libfoo.so ./cmd/libfoo
+
+android: android-armv7a android-arm64 android-x86 android-x86_64
 ```
-// Makefile
 
+**Note** Make sure you set the correct location for your Android SDK and the version of the NDK you have downloaded.
 
+Running `make android` will now build all the shared libraries we need into the correct folder. We now need to add our
+library to CMake:
+
+```cmake
+// android/app/src/main/cpp/CMakeLists.txt
+
+// ...
+
+add_library(lib_foo SHARED IMPORTED)
+set_property(TARGET lib_foo PROPERTY IMPORTED_NO_SONAME 1)
+set_target_properties(lib_foo PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/../jniLibs/${CMAKE_ANDROID_ARCH_ABI}/libfoo.so)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../jniLibs/${CMAKE_ANDROID_ARCH_ABI}/)
+
+// ...
+
+target_link_libraries(native-lib lib_foo ${log-lib})
 ```
+
+It took me a while to figure out these settings, once again, naming matters so was important to name the library with
+`lib_xxxx` and also set the property `IMPORTED_NO_SONAME 1` otherwise your apk will be looking for your library in the
+wrong place.
+
+We can now hookup our JNI code to our Go library, cross our fingers, and run our app:
+
+```cpp
+// android/app/src/main/cpp/native-lib.cpp
+
+#include "libfoo.h"
+
+extern "C" {
+    jstring
+    Java_com_rogchap_foobar_MainActivity_reverse(JNIEnv* env, jobject, jstring str) {
+        const char* cstr = env->GetStringUTFChars(str, 0);
+        char* cout = reverse(const_cast<char*>(cstr));
+        jstring out = env->NewStringUTF(cout);
+        env->ReleaseStringUTFChars(str, cstr);
+        free(cout);
+        return out;
+    }
+}
+```
+
+![libfoo android app](/posts/img/libfoo_android.gif)
+
+## Conclusion
+
+One of Go's strengths is that it's cross-platform; but that doesn't just mean Window, Mac and Linux, Go can target many
+other architectures including iOS and Android. Now you have another option in your toolbelt to create shared libraries
+that run on server, your mobile apps and maybe even web (via web assembly).
+
+All the code for this tutorial, is available on GitHub: [rogchap/libfoo](https://github.com/rogchap/libfoo)
+
+Looking forward to hearing about the new killer app that you build with Go.
