@@ -100,7 +100,7 @@ We're using the special `C.GoString()` and `C.CString()` functions to convert be
 letter). Also note the empty `main` function; this is required for the Go code to compile otherwise you'll get a
 `function main is undeclared in the main package` error.
 
-Lets test our build by creating a static C library using the Go `-buildmode` flag:
+Let's test our build by creating a static C library using the Go `-buildmode` flag:
 
 ```
 go build -buildmode=c-archive -o foo.a ./cmd/libfoo
@@ -232,7 +232,7 @@ Using Android Studio, we will create a new Android project. From the Project Tem
 create a project with an Empty Activity that is configured to use the Java Native Interface (JNI). We will still select
 `Kotlin` as our language of choice for the project.
 
-After creating a simple Activity with a `EditText` and `Button` we create the basic functionality for our app:
+After creating a simple Activity with a `EditText` and a `Button` we create the basic functionality for our app:
 
 ```kotlin
 // android/app/src/main/java/com/rogchap/foobar/MainActivity.kt
@@ -263,7 +263,7 @@ class MainActivity : AppCompatActivity() {
 }
 ```
 
-We created (and called) and external function `reverse` that we need to implement in the JNI (C++):
+We created (and called) an external function `reverse` that we need to implement in the JNI (C++):
 
 ```cpp
 // android/app/src/main/cpp/native-lib.cpp
