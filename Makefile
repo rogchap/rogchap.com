@@ -12,6 +12,7 @@ build:
 publish: build
 	@echo "\033[0;32mPublishing updates to GitHub...\033[0m\n"
 	@cd public && git add . && git commit -m "rebuilding site - `date`"
+	@cd public && git push
 
 .PHONY: post
 post:

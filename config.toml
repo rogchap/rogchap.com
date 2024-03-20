@@ -23,6 +23,7 @@ modules = "/:filename/"
 dateformatpretty = "Jan 2, 2006"
 description = "Roger is a Software Engineer living in Sydney, Australia. As a polyglot engineer, working with C#, Objective-C (iOS), Java (Android) and Javascript, he has found his passion with the Go programming language."
 images = ["tile.png"]
+branch = "main"
 
 [author]
 email = "rogchap@gmail.com"
